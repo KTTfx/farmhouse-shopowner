@@ -17,7 +17,10 @@ export default function ShopAuth() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login({
+        email,
+        password
+    });
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
