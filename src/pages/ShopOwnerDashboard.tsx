@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { ShopLayout } from "@/components/Layout/ShopLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,11 +8,11 @@ import {
   Package, 
   ShoppingBag, 
   Store, 
-  TrendingUp, 
-  // Users, 
   Settings, 
   LogOut,
-  Loader2
+  Loader2,
+  Tag,
+  TrendingUp
 } from "lucide-react";
 import { ProductForm } from "@/components/ShopOwner/ProductForm";
 import { useShopAuth } from "@/context/ShopAuthContext";
@@ -23,6 +22,7 @@ import shopsService from "@/services/shop.service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductsList } from "@/components/ShopOwner/ProductsList";
 import { ShopSettings } from "@/components/ShopOwner/ShopSettings";
+import { CategoryManager } from "@/components/ShopOwner/CategoryManager";
 
 // Define types for shop profile data
 interface ShopProfile {
@@ -69,7 +69,6 @@ const ShopOwnerDashboard = () => {
   // Loading state
   if (loading) {
     return (
-      <ShopLayout>
         <div className="py-8 px-4 md:py-12">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -94,14 +93,12 @@ const ShopOwnerDashboard = () => {
             <Skeleton className="h-[400px] w-full" />
           </div>
         </div>
-      </ShopLayout>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <ShopLayout>
         <div className="py-8 px-4 md:py-12">
           <div className="max-w-7xl mx-auto">
             <Alert variant="destructive" className="mb-6">
@@ -113,26 +110,22 @@ const ShopOwnerDashboard = () => {
             </Button>
           </div>
         </div>
-      </ShopLayout>
     );
   }
 
   // If shop profile is not loaded yet
   if (!shopProfile) {
     return (
-      <ShopLayout>
         <div className="flex items-center justify-center h-[80vh]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-ghana-green" />
             <p>Loading shop profile...</p>
           </div>
         </div>
-      </ShopLayout>
     );
   }
 
   return (
-    <ShopLayout>
       <div className="py-8 px-4 md:py-12">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -212,13 +205,13 @@ const ShopOwnerDashboard = () => {
                 <Package className="h-5 w-5" />
                 <span className="hidden md:inline ml-1.5">Add Product</span>
               </TabsTrigger>
+              <TabsTrigger value="categories" className="px-4 py-2 text-xs mx-1">
+                <Tag className="h-5 w-5" />
+                <span className="hidden md:inline ml-1.5">Categories</span>
+              </TabsTrigger>
               <TabsTrigger value="orders" className="px-4 py-2 text-xs mx-1">
                 <ShoppingBag className="h-5 w-5" />
                 <span className="hidden md:inline ml-1.5">Orders</span>
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="px-4 py-2 text-xs mx-1">
-                <TrendingUp className="h-5 w-5" />
-                <span className="hidden md:inline ml-1.5">Analytics</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="px-4 py-2 text-xs mx-1">
                 <Settings className="h-5 w-5" />
@@ -263,6 +256,18 @@ const ShopOwnerDashboard = () => {
               </Card>
             </TabsContent>
             
+            <TabsContent value="categories">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manage Categories</CardTitle>
+                  <CardDescription>Create and manage product categories for your shop.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CategoryManager shopId={shopProfile.id} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
             <TabsContent value="orders">
               <Card>
                 <CardHeader>
@@ -273,21 +278,6 @@ const ShopOwnerDashboard = () => {
                   <div className="text-center py-8 md:py-12">
                     <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-lg text-gray-500">Order management coming soon</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="analytics">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sales Analytics</CardTitle>
-                  <CardDescription>Track your shop's performance over time.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 md:py-12">
-                    <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg text-gray-500">Analytics dashboards coming soon</p>
                   </div>
                 </CardContent>
               </Card>
@@ -307,7 +297,6 @@ const ShopOwnerDashboard = () => {
           </Tabs>
         </div>
       </div>
-    </ShopLayout>
   );
 };
 
