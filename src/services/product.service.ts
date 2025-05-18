@@ -28,6 +28,11 @@ const productService = {
         const response = await apiClient.get(`/${shopId}/products`);
         return response.data.data;
     },
+
+    getProduct: async (productId: string) => {
+        const response = await apiClient.get(`/products/${productId}`);
+        return response.data.data;
+    },
 };
 
 export default productService;
