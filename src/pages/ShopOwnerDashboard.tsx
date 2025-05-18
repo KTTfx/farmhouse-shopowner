@@ -226,7 +226,8 @@ const ShopOwnerDashboard = () => {
                   <CardDescription>List, edit, and add new products to your shop.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {shopProfile.productsCount > 0 ? (
+                  <ProductsList shopId={shopProfile.id} />
+                  {/* {shopProfile.productsCount > 0 ? (
                     <ProductsList shopId={shopProfile.id} />
                   ) : (
                     <div className="text-center py-8 md:py-12">
@@ -239,7 +240,7 @@ const ShopOwnerDashboard = () => {
                         Add Your First Product
                       </Button>
                     </div>
-                  )}
+                  )} */}
                 </CardContent>
               </Card>
             </TabsContent>
