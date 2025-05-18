@@ -160,10 +160,18 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
 
     setIsSubmitting(true);
     try {
-      const updatedCategory = await categoryService.updateCategory(selectedCategory.id, formData.name, formData.description);
-      setCategories(prev => 
-        prev.map(cat => cat.id === selectedCategory.id ? {...cat, ...updatedCategory} : cat)
+      console.log('Request payload:', { id: selectedCategory.id, name: formData.name, description: formData.description });
+      const updatedCategory = await categoryService.updateCategory(
+        selectedCategory.id, 
+        formData.name, 
+        formData.description
       );
+      
+      // Update the categories list with the returned data
+      setCategories(prev => 
+        prev.map(cat => cat.id === selectedCategory.id ? updatedCategory : cat)
+      );
+      
       setIsEditDialogOpen(false);
       resetFormData();
       toast({
@@ -188,9 +196,14 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
 
     setIsSubmitting(true);
     try {
+      console.log('Request payload:', { id: selectedCategory.id, name: formData.name, description: formData.description });
       await categoryService.deleteCategory(selectedCategory.id);
+      
+      // Update the categories list after successful deletion
       setCategories(prev => prev.filter(cat => cat.id !== selectedCategory.id));
       setIsDeleteDialogOpen(false);
+      setSelectedCategory(null); // Clear the selected category
+      
       toast({
         title: "Category deleted",
         description: "Category has been deleted successfully."
