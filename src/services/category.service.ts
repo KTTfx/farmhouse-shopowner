@@ -1,11 +1,10 @@
 import apiClient from '../lib/api';
 
 const categoryService = {
-    addCategory: async (categoryData: FormData) => {
-        const response = await apiClient.post('/categories', categoryData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+    addCategory: async (name: string, description: string) => {
+        const response = await apiClient.post('/categories', {
+            name, 
+            description,
         });
         return response.data.data;
     },
@@ -15,11 +14,10 @@ const categoryService = {
         return response.data.data;
     },
 
-    updateCategory: async (categoryId: string, categoryData: FormData) => {
-        const response = await apiClient.put(`/categories/${categoryId}`, categoryData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+    updateCategory: async (categoryId: string, name: string, description: string) => {
+        const response = await apiClient.patch(`/categories/${categoryId}`, {
+            name, 
+            description,
         });
         return response.data.data;
     },
