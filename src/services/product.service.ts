@@ -1,7 +1,17 @@
 import apiClient from '../lib/api';
 
-const productService = {
+const productsService = {
+    // Alias for createProduct to maintain compatibility
     addProduct: async (productData: FormData) => {
+        const response = await apiClient.post('/products', productData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data.data;
+    },
+
+    createProduct: async (productData: FormData) => {
         const response = await apiClient.post('/products', productData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -25,7 +35,7 @@ const productService = {
     },
     
     getShopProducts: async (shopId: string) => {
-        const response = await apiClient.get(`/${shopId}/products`);
+        const response = await apiClient.get(`/shops/${shopId}/products`);
         return response.data.data;
     },
 
@@ -35,4 +45,4 @@ const productService = {
     },
 };
 
-export default productService;
+export default productsService;
