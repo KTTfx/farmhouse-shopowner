@@ -20,7 +20,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch";
 import { 
   Select,
   SelectContent,
@@ -47,12 +47,16 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  inventory: number;
-  category: string;
+  stockQuantity: number;
+  categoryId: string;
   status: 'active' | 'draft' | 'out_of_stock';
   imageUrl: string;
   description: string;
   createdAt: string;
+  category: {
+    id: string;
+    name: string;
+  }
 }
 
 interface ProductsListProps {
@@ -70,7 +74,7 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
   const [sortField, setSortField] = useState<'name' | 'price' | 'inventory' | 'createdAt'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  // const [statusFilter, setStatusFilter] = useState('all');
 
   // Fetch products
   const fetchProducts = async () => {
@@ -110,35 +114,16 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
     }
   };
 
-  // Handle product status toggle
-  const handleToggleStatus = async (product: Product, isActive: boolean) => {
-    setIsActionLoading(true);
-    try {
-      // const newStatus = isActive ? 'active' : 'draft';
-      // await productsService.updateProduct(product.id, FormData);
-      
-      // Update local state
-      // setProducts(products.map(p => 
-      //   p.id === product.id ? {...p, status: newStatus as 'active' | 'draft' | 'out_of_stock'} : p
-      // ));
-    } catch (err) {
-      console.error("Failed to update product status:", err);
-      setError("Failed to update product status. Please try again.");
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
 
   // Get unique categories for filtering
-  const categories = ['all', ...new Set(products.map(product => product.category))];
+  const categories = ['all', ...new Set(products.map(product => product.category.name))];
 
   // Filter and sort products
   const filteredProducts = products
     .filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-      const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-      return matchesSearch && matchesCategory && matchesStatus;
+      const matchesCategory = categoryFilter === 'all' || product.category.name === categoryFilter;
+      return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
       if (sortField === 'name') {
@@ -147,8 +132,6 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
           : b.name.localeCompare(a.name);
       } else if (sortField === 'price') {
         return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
-      } else if (sortField === 'inventory') {
-        return sortDirection === 'asc' ? a.inventory - b.inventory : b.inventory - a.inventory;
       } else {
         return sortDirection === 'asc' 
           ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -163,20 +146,6 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
     } else {
       setSortField(field);
       setSortDirection('asc');
-    }
-  };
-
-  // Render status badge
-  const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800 border-green-300">Active</Badge>;
-      case 'draft':
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-300">Draft</Badge>;
-      case 'out_of_stock':
-        return <Badge className="bg-red-100 text-red-800 border-red-300">Out of Stock</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
     }
   };
 
@@ -259,7 +228,7 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
             </SelectContent>
           </Select>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -269,7 +238,7 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="out_of_stock">Out of Stock</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
         </div>
       </div>
 
@@ -303,12 +272,12 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
                   onClick={() => handleSort('inventory')}
                   className="flex items-center p-0 font-medium"
                 >
-                  Inventory
+                  Stock Quantity
                   <ArrowUpDown className="ml-1 h-4 w-4" />
                 </Button>
               </TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
+              {/* <TableHead>Status</TableHead> */}
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -335,13 +304,13 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
                   </div>
                 </TableCell>
                 <TableCell>GH₵ {product.price.toFixed(2)}</TableCell>
-                <TableCell>{product.inventory}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell>
+                <TableCell>{product.stockQuantity}</TableCell>
+                <TableCell>{product.category.name}</TableCell>
+                {/* <TableCell>
                   <div className="flex items-center gap-2">
                     {renderStatusBadge(product.status)}
                   </div>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button
@@ -372,11 +341,11 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <Switch 
+                    {/* <Switch 
                       checked={product.status === 'active'} 
                       disabled={isActionLoading}
                       onCheckedChange={(checked) => handleToggleStatus(product, checked)} 
-                    />
+                    /> */}
                   </div>
                 </TableCell>
               </TableRow>
