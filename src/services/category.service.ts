@@ -23,8 +23,8 @@ const categoryService = {
     },
 
     deleteCategory: async (categoryId: string) => {
-        const response = await apiClient.delete(`/categories/${categoryId}`);
-        return response.data.data;
+        await apiClient.delete(`/categories/${categoryId}`);
+        return true;
     },
 };
 
