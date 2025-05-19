@@ -40,9 +40,22 @@ interface Category {
   id: string;
   name: string;
   description?: string;
-  productsCount?: number;
   createdAt: string;
   updatedAt: string;
+  products: {
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    stockQuantity: number;
+    inStock: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }[],
+  shop: {
+    id: string;
+    name: string;
+  }
 }
 
 interface CategoryManagerProps {
@@ -317,6 +330,7 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Products</TableHead>
+                <TableHead>Created By</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -327,7 +341,12 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
                   <TableCell className="max-w-xs truncate">
                     {category.description || "No description"}
                   </TableCell>
-                  <TableCell>{category.productsCount || 0}</TableCell>
+                  <TableCell>
+                    {category.products ? category.products.length : 0}
+                  </TableCell>
+                  <TableCell>
+                    {category.shop.name}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
