@@ -209,13 +209,12 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
 
     setIsSubmitting(true);
     try {
-      console.log('Request payload:', { id: selectedCategory.id, name: formData.name, description: formData.description });
       await categoryService.deleteCategory(selectedCategory.id);
       
       // Update the categories list after successful deletion
       setCategories(prev => prev.filter(cat => cat.id !== selectedCategory.id));
       setIsDeleteDialogOpen(false);
-      setSelectedCategory(null); // Clear the selected category
+      setSelectedCategory(null);
       
       toast({
         title: "Category deleted",
