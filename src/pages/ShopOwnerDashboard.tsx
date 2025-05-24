@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductsList } from "@/components/ShopOwner/ProductsList";
 import { ShopSettings } from "@/components/ShopOwner/ShopSettings";
 import { CategoryManager } from "@/components/ShopOwner/CategoryManager";
+import { OrdersTable } from "@/components/ShopOwner/OrdersTable";
 
 // Define types for shop profile data
 interface ShopProfile {
@@ -274,12 +275,8 @@ const ShopOwnerDashboard = () => {
                 <CardHeader>
                   <CardTitle>Manage Orders</CardTitle>
                   <CardDescription>View and process customer orders.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 md:py-12">
-                    <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg text-gray-500">Order management coming soon</p>
-                  </div>
+                </CardHeader>                <CardContent>
+                  <OrdersTable />
                 </CardContent>
               </Card>
             </TabsContent>
