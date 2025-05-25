@@ -56,35 +56,37 @@ export const ShopSettings = ({ shopProfile }: ShopSettingsProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
     try {
-      // Create FormData to handle file uploads
-      const formDataToSubmit = new FormData();
+      setIsSubmitting(true);
       
-      // Add all form fields
-      Object.entries(formData).forEach(([key, value]) => {
-        formDataToSubmit.append(key, value);
-      });
+      // Create FormData object for multipart form submission
+      const formDataObj = new FormData();
+      formDataObj.append('name', formData.name);
+      formDataObj.append('ownerName', formData.ownerName);
+      formDataObj.append('email', formData.email);
+      formDataObj.append('phoneNumber', formData.phoneNumber);
+      formDataObj.append('location', formData.location);
+      formDataObj.append('description', formData.description || '');
       
-      // Add profile image if selected
+      // Only append the file if it exists
       if (profileImage) {
-        formDataToSubmit.append('profileImage', profileImage);
+        formDataObj.append('profileImage', profileImage);
       }
       
-      // Submit to API
-      await shopsService.updateShopProfile(formDataToSubmit);
+      await shopsService.updateShopProfile(formDataObj);
       
       toast({
-        title: "Settings updated",
-        description: "Your shop profile has been updated successfully.",
+        title: 'Profile Updated',
+        description: 'Your shop profile has been updated successfully.',
       });
+      
+      // Shop data will refresh on component re-render or page reload
     } catch (error) {
-      console.error("Failed to update shop profile:", error);
       toast({
-        title: "Update failed",
-        description: "There was a problem updating your shop profile.",
-        variant: "destructive",
+        title: 'Update Failed',
+        description: 'Failed to update shop profile. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
