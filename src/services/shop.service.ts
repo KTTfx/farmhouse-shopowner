@@ -11,10 +11,11 @@ const shopsService = {
     return response.data.data;
   },
   
-  updateShopProfile: async (shopData: FormData) => {
-    const response = await apiClient.put('/shops/update', shopData, {
+  updateShopProfile: async (formData: FormData) => {
+    const response = await apiClient.put('/shops/update', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${localStorage.getItem('shopToken')}`,
       },
     });
     return response.data.data;
