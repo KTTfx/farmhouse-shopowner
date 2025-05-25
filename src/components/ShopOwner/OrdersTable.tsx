@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
-  Truck, 
-//   Package, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-//   Filter, 
   RefreshCw,
   Info,
   ShoppingBag
@@ -21,6 +15,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -91,7 +88,11 @@ export const OrdersTable: React.FC = () => {
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isShippingDialogOpen, setIsShippingDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [carrier, setCarrier] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
@@ -129,44 +130,82 @@ export const OrdersTable: React.FC = () => {
     }
   }, [statusFilter, orders]);
 
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
-    setIsUpdatingStatus(true);
+  useEffect(() => {
+    if (!isShippingDialogOpen) {
+      setCarrier('');
+      setTrackingNumber('');
+    }
+    if (!isCancelDialogOpen) {
+      setCancelReason('');
+    }
+  }, [isShippingDialogOpen, isCancelDialogOpen]);
+
+  const handleShipOrder = async (orderId: string, trackingInfo?: { trackingNumber?: string; carrier?: string }) => {
     try {
-      await orderService.updateOrderStatus(orderId, newStatus);
-      
-      // Update the order in the state
-      const updatedOrders = orders.map((order) =>
-        order.id === orderId
-          ? { ...order, orderStatus: newStatus as 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' }
-          : order
-      );
-      
-      setOrders(updatedOrders);
-      
-      // Update selected order if it's open
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder({
-          ...selectedOrder,
-          orderStatus: newStatus as 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
-        });
-      }
-      
+      setIsLoading(true);
+      await orderService.shipOrder(orderId, trackingInfo);
       toast({
-        title: "Status Updated",
-        description: `Order status has been updated to ${newStatus}.`,
-        variant: "default"
+        title: "Order Shipped",
+        description: "The order has been successfully shipped.",
+        // variant: "success"
       });
+      fetchOrders(); // Refresh orders after shipping
     } catch (error) {
-      console.error("Error updating order status:", error);
+      console.error("Error shipping order:", error);
       toast({
         title: "Error",
-        description: "Failed to update order status. Please try again.",
+        description: "Failed to ship the order. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setIsUpdatingStatus(false);
+      setIsLoading(false);
     }
   };
+
+  const handleDeliverOrder = async (orderId: string) => {
+    try {
+      setIsLoading(true);
+      await orderService.deliverOrder(orderId);
+      toast({
+        title: "Order Delivered",
+        description: "The order has been marked as delivered.",
+        // variant: "success"
+      });
+      fetchOrders(); // Refresh orders after delivery
+    } catch (error) {
+      console.error("Error delivering order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to deliver the order. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleCancelOrder = async (orderId: string, reason: string) => {
+    try {
+      setIsLoading(true);
+      await orderService.cancelOrder(orderId, reason);
+      toast({
+        title: "Order Cancelled",
+        description: "The order has been successfully cancelled.",
+        // variant: "success"
+      });
+      fetchOrders(); // Refresh orders after cancellation
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel the order. Please try again.",
+        variant: "destructive"
+      });
+    }
+    finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -288,7 +327,7 @@ export const OrdersTable: React.FC = () => {
 
       {/* Order Details Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>
@@ -308,120 +347,98 @@ export const OrdersTable: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium mr-2">Update Status:</h3>
-                  <Select 
-                    disabled={isUpdatingStatus} 
-                    value={selectedOrder.orderStatus}
-                    onValueChange={(value) => handleUpdateStatus(selectedOrder.id, value)}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PROCESSING">
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-blue-500" />
-                          Processing
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="SHIPPED">
-                        <div className="flex items-center">
-                          <Truck className="h-4 w-4 mr-2 text-amber-500" />
-                          Shipped
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="DELIVERED">
-                        <div className="flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                          Delivered
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="CANCELLED">
-                        <div className="flex items-center">
-                          <XCircle className="h-4 w-4 mr-2 text-red-500" />
-                          Cancelled
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Customer Information */}
-              <div>
-                <h3 className="text-base font-medium mb-2">Customer Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {selectedOrder.user ? (
-                    <>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Name</h4>
-                        <p>{selectedOrder.user.firstName} {selectedOrder.user.lastName}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                        <p>{selectedOrder.user.email}</p>
-                      </div>
-                    </>
-                  ) : selectedOrder.shippingAddress ? (
-                    <>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Name</h4>
-                        <p>{selectedOrder.shippingAddress.fullName}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Phone</h4>
-                        <p>{selectedOrder.shippingAddress.phone}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <div>
-                      <p className="text-gray-500">Customer information not available</p>
+                  <h3 className="text-sm font-medium mr-2">Actions:</h3>
+                  
+                  {selectedOrder.orderStatus === 'PROCESSING' && (
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => {
+                          setIsShippingDialogOpen(true);
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="border-amber-500 text-amber-500 hover:bg-amber-50"
+                      >
+                        Ship Order
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => {
+                          setCancelReason('');
+                          setIsCancelDialogOpen(true);
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="border-red-500 text-red-500 hover:bg-red-50"
+                      >
+                        Cancel Order
+                      </Button>
                     </div>
+                  )}
+                  
+                  {selectedOrder.orderStatus === 'SHIPPED' && (
+                    <Button 
+                      onClick={() => handleDeliverOrder(selectedOrder.id)}
+                      size="sm"
+                      variant="outline"
+                      className="border-green-500 text-green-500 hover:bg-green-50"
+                    >
+                      Mark as Delivered
+                    </Button>
+                  )}
+                  
+                  {(selectedOrder.orderStatus === 'DELIVERED' || selectedOrder.orderStatus === 'CANCELLED') && (
+                    <p className="text-sm text-gray-500 italic">No actions available</p>
                   )}
                 </div>
               </div>
-
-              {/* Shipping Information */}
-              {selectedOrder.shippingAddress && (
-                <div>
-                  <h3 className="text-base font-medium mb-2">Shipping Information</h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">Address</h4>
-                      <p>
-                        {selectedOrder.shippingAddress.street}, {selectedOrder.shippingAddress.city}, {" "}
-                        {selectedOrder.shippingAddress.state}, {selectedOrder.shippingAddress.country}{" "}
-                        {selectedOrder.shippingAddress.zipCode}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">Phone</h4>
-                      <p>{selectedOrder.shippingAddress.phone}</p>
-                    </div>
+              
+              {/* Customer and Shipping Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Customer Information</h3>
+                  <div className="text-sm">
+                    <p><span className="font-medium">Name:</span> {selectedOrder.user 
+                      ? `${selectedOrder.user.firstName} ${selectedOrder.user.lastName}`
+                      : (selectedOrder.shippingAddress?.fullName || "N/A")}</p>
+                    <p><span className="font-medium">Email:</span> {selectedOrder.user?.email || "N/A"}</p>
                   </div>
                 </div>
-              )}
-
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Shipping Address</h3>
+                  {selectedOrder.shippingAddress ? (
+                    <div className="text-sm">
+                      <p>{selectedOrder.shippingAddress.fullName}</p>
+                      <p>{selectedOrder.shippingAddress.street}</p>
+                      <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.zipCode}</p>
+                      <p>{selectedOrder.shippingAddress.country}</p>
+                      <p>{selectedOrder.shippingAddress.phone}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No shipping address provided</p>
+                  )}
+                </div>
+              </div>
+              
               {/* Order Items */}
-              <div>
-                <h3 className="text-base font-medium mb-2">Order Items</h3>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Order Items</h3>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Product</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Price</TableHead>
+                        <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {/* Only show products from this shop */}
                       {selectedOrder.orderItems.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell>{item.product?.name || "Product"}</TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
+                          <TableCell>{item.product?.name || `Product ${item.productId.substring(0, 8)}`}</TableCell>
                           <TableCell className="text-right">GH₵{item.price.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">{item.quantity}</TableCell>
                           <TableCell className="text-right">GH₵{(item.price * item.quantity).toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
@@ -429,31 +446,123 @@ export const OrdersTable: React.FC = () => {
                   </Table>
                 </div>
               </div>
-
+              
               {/* Order Summary */}
               <div className="border-t pt-4">
-                <h3 className="text-base font-medium mb-2">Order Summary</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span>GH₵{selectedOrder.totalAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Platform Fee (5%)</span>
-                    <span>GH₵{(selectedOrder.totalAmount * 0.05).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-medium">
-                    <span>Total</span>
-                    <span>GH₵{(selectedOrder.totalAmount * 1.05).toFixed(2)}</span>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Total Amount:</span>
+                  <span className="font-bold">GH₵{selectedOrder.totalAmount.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           )}
-
-          <DialogFooter>
-            <Button onClick={() => setIsDetailsOpen(false)} variant="outline">
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Shipping Dialog */}
+      <Dialog open={isShippingDialogOpen} onOpenChange={setIsShippingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ship Order</DialogTitle>
+            <DialogDescription>
+              Enter shipping details for order #{selectedOrder?.id.substring(0, 8)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="carrier">Shipping Carrier</Label>
+              <Input
+                id="carrier"
+                placeholder="e.g. DHL, UPS, Ghana Post"
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tracking">Tracking Number (Optional)</Label>
+              <Input
+                id="tracking"
+                placeholder="Enter tracking number"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsShippingDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedOrder) {
+                  handleShipOrder(selectedOrder.id, {
+                    carrier: carrier.trim() || undefined,
+                    trackingNumber: trackingNumber.trim() || undefined
+                  });
+                  setIsShippingDialogOpen(false);
+                }
+              }}
+            >
+              Ship Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancellation Dialog */}
+      <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Order</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for cancelling this order.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reason">Cancellation Reason</Label>
+              <Textarea
+                id="reason"
+                placeholder="e.g. Item out of stock, customer requested cancellation"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={3}
+                required
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCancelDialogOpen(false)}
+            >
+              Back
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (selectedOrder && cancelReason.trim()) {
+                  handleCancelOrder(selectedOrder.id, cancelReason.trim());
+                  setIsCancelDialogOpen(false);
+                }
+              }}
+              disabled={!cancelReason.trim()}
+            >
+              Cancel Order
             </Button>
           </DialogFooter>
         </DialogContent>
