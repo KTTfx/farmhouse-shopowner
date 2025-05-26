@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import categoryService from "@/services/category.service";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { 
   Table, 
   TableBody, 
@@ -51,9 +52,10 @@ interface Product {
   stockQuantity: number;
   categoryId: string;
   status: 'active' | 'draft' | 'out_of_stock';
-  productImage: string;
+  productImages: string;
   description: string;
   createdAt: string;
+  isDeleted: boolean;
   category: {
     id: string;
     name: string;
@@ -88,15 +90,17 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
   const [sortField, setSortField] = useState<'name' | 'price' | 'inventory' | 'createdAt'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [showDeleted, setShowDeleted] = useState(false);
   const { toast } = useToast();
 
   // Fetch products
   const fetchProducts = async () => {
-    setIsLoading(true);
-    setError(null);
     try {
-      const response = await productsService.getShopProducts(shopId);
-      setProducts(response);
+      setIsLoading(true);
+      setError(null);
+      // Fetch including deleted products
+      const products = await productsService.getShopProducts(shopId, showDeleted);
+      setProducts(products);
     } catch (err) {
       console.error("Failed to fetch products:", err);
       setError("Failed to load products. Please try again.");
@@ -108,7 +112,11 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
   // Initialize products
   useEffect(() => {
     fetchProducts();
-  }, [shopId]);
+  }, [shopId, showDeleted]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Handle product deletion
   const handleDeleteProduct = async () => {
@@ -125,12 +133,22 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       setProducts(products.filter(p => p.id !== selectedProduct.id));
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to delete product:", err);
+      if (err.response) {
+          console.error("Error status:", err.response.status);
+          console.error("Error data:", err.response.data);
+      }
+      
+      let errorMessage = "Failed to delete product. Please try again.";
+      if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to delete product. Please try again.",
-        variant: "destructive",
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
       });
     } finally {
       setIsActionLoading(false);
@@ -158,7 +176,19 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       categoryId: product.categoryId,
       description: product.description || '',
     });
-    setPreviewImages(product.productImage ? [product.productImage] : []);
+
+    // Set preview images based on available image data
+    const imageUrls = [];
+    if (product.productImages) {
+      imageUrls.push(product.productImages);
+    } else if (product.productImages && product.productImages.length > 0) {
+      imageUrls.push(...product.productImages);
+    }
+    setPreviewImages(imageUrls);
+    
+    // Reset new images
+    setEditImages([]);
+    
     setIsEditDialogOpen(true);
     fetchCategories();
   };
@@ -207,6 +237,11 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       setIsEditDialogOpen(false);
     } catch (err: any) {
       console.error("Failed to update product:", err);
+      if (err.response) {
+        console.error("Error response:", err.response.data);
+        console.error("Error status:", err.response.status);
+      }
+      
       toast({
         title: "Failed to Update Product",
         description: err.response?.data?.message || "Something went wrong. Please try again.",
@@ -217,8 +252,30 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
     }
   };
 
-  // Get unique categories for filtering
-  // const categories = ['all', ...new Set(products.map(product => product.category.name))];
+  const handleRestoreProduct = async (productId: string) => {
+    setIsActionLoading(true);
+    try {
+      console.log(`Attempting to restore producy ${productId}`);
+      await productsService.restoreProduct(productId);
+      console.log(`Successfully restored product ${productId}`);
+      toast({
+        title: "Product Restored",
+        description: "The product has been successfully restored.",
+      });
+      
+      // Refresh the products list
+      fetchProducts();
+    } catch (err: any) {
+      console.error("Failed to restore product:", err);
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to restore product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
   // Filter and sort products
   const filteredProducts = products
@@ -306,6 +363,21 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="show-deleted"
+            checked={showDeleted}
+            onCheckedChange={(checked) => {
+              setShowDeleted(checked);
+              // Reset any filters when toggling
+              setSearchTerm('');
+              setCategoryFilter('all');
+            }}
+          />
+          <Label htmlFor="show-deleted" className="cursor-pointer">
+            {showDeleted ? "Showing deleted products" : "Show deleted products"}
+          </Label>
+        </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
           <Input
@@ -374,20 +446,42 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
           </TableHeader>
           <TableBody>
             {filteredProducts.map((product) => (
-              <TableRow key={product.id}>
+              <TableRow 
+                key={product.id}
+                className={product.isDeleted ? "bg-red" : ""}
+                >
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    {product.productImage && (
+                    {product.productImages ? (
                       <div className="h-10 w-10 rounded bg-gray-100 overflow-hidden flex-shrink-0">
                         <img 
-                          src={product.productImage} 
+                          src={product.productImages} 
                           alt={product.name} 
-                          className="h-full w-full object-cover"
+                          className={`h-full w-full object-cover ${product.isDeleted ? "opacity-60" : ""}`}
                         />
+                      </div>
+                    ) : product.productImages && product.productImages.length > 0 ? (
+                      <div className="h-10 w-10 rounded bg-gray-100 overflow-hidden flex-shrink-0">
+                        <img 
+                          src={product.productImages[0]} 
+                          alt={product.name} 
+                          className={`h-full w-full object-cover ${product.isDeleted ? "opacity-60" : ""}`}
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 rounded bg-gray-100 flex-shrink-0 flex items-center justify-center">
+                        <Package className="h-5 w-5 text-gray-400" />
                       </div>
                     )}
                     <div>
-                      <p className="font-medium truncate max-w-[200px]">{product.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium truncate max-w-[200px]">{product.name}</p>
+                        {product.isDeleted && (
+                          <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full">
+                            Deleted
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 truncate max-w-[200px]" title={product.description}>
                         {product.description?.slice(0, 50)}{product.description?.length > 50 ? '...' : ''}
                       </p>
@@ -399,33 +493,46 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
                 <TableCell>{product.category.name}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setIsViewDialogOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditClick(product)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {product.isDeleted ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRestoreProduct(product.id)}
+                        title="Restore Product"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setIsViewDialogOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(product)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -478,10 +585,10 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Product Images */}
               <div className="space-y-4">
-                {selectedProduct.productImage ? (
+                {selectedProduct.productImages ? (
                   <div className="border rounded-md overflow-hidden">
                     <img 
-                      src={selectedProduct.productImage} 
+                      src={selectedProduct.productImages} 
                       alt={selectedProduct.name} 
                       className="w-full h-48 md:h-64 object-cover"
                     />
@@ -635,7 +742,10 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
                       className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
                       onClick={() => {
                         setPreviewImages(previewImages.filter((_, i) => i !== index));
-                        setEditImages(editImages.filter((_, i) => i !== index));
+                        // Only filter editImages if it's a new image, not an existing one
+                        if (index < editImages.length) {
+                          setEditImages(editImages.filter((_, i) => i !== index));
+                        }
                       }}
                     >
                       <X className="h-3 w-3" />
