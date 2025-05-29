@@ -20,6 +20,7 @@ interface ShopSettingsProps {
 
 export const ShopSettings = ({ shopProfile }: ShopSettingsProps) => {
   const [formData, setFormData] = useState({
+    image: shopProfile.profileImage || '',
     name: shopProfile.name || '',
     ownerName: shopProfile.ownerName || '',
     email: shopProfile.email || '',
@@ -29,7 +30,7 @@ export const ShopSettings = ({ shopProfile }: ShopSettingsProps) => {
   });
   
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(shopProfile.imageUrl || null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(shopProfile.profileImage || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
