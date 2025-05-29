@@ -522,7 +522,7 @@ export const OrdersTable: React.FC = () => {
                   <Label htmlFor="carrier">Shipping Carrier</Label>
                   <Input
                     id="carrier"
-                    placeholder="e.g. DHL, UPS, Ghana Post"
+                    placeholder="e.g. DHL, UPS, Ghana Post, Dispatch rider number plate"
                     value={carrier}
                     onChange={(e) => setCarrier(e.target.value)}
                   />
