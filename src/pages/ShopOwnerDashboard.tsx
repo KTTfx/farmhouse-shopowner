@@ -40,10 +40,19 @@ interface ShopProfile {
   // Add other properties as needed
 }
 
+interface ShopStats {
+  productsCount: number;
+  totalOrdersCount: number;
+  todayOrdersCount: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+}
+
 const ShopOwnerDashboard = () => {
   const { shop, logout } = useShopAuth();
   const [shopProfile, setShopProfile] = useState<ShopProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shopStats, setShopStats] = useState<ShopStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("products");
 
@@ -54,8 +63,16 @@ const ShopOwnerDashboard = () => {
       try {
         setLoading(true);
         setError(null);
-        const shopData = await shopsService.getShopProfile();
-        setShopProfile(shopData);
+        
+        // Fetch shop profile and stats in parallel
+        const [profileData, statsData] = await Promise.all([
+          shopsService.getShopProfile(),
+          shopsService.getShopStats()
+        ]);
+        
+        setShopProfile(profileData);
+        setShopStats(statsData);
+
       } catch (err) {
         console.error("Error fetching shop data:", err);
         setError("Failed to fetch shop profile. Please try refreshing the page.");
@@ -154,7 +171,7 @@ const ShopOwnerDashboard = () => {
               <CardContent className="p-4 md:p-6 flex justify-between items-center">
                 <div>
                   <p className="text-sm text-muted-foreground">Products</p>
-                  <p className="text-xl md:text-2xl font-bold">{shopProfile.productsCount || 0}</p>
+                  <p className="text-xl md:text-2xl font-bold">{shopStats?.productsCount || 0}</p>
                 </div>
                 <Store className="h-6 md:h-8 w-6 md:w-8 text-ghana-green opacity-80" />
               </CardContent>
@@ -164,7 +181,7 @@ const ShopOwnerDashboard = () => {
               <CardContent className="p-4 md:p-6 flex justify-between items-center">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="text-xl md:text-2xl font-bold">{shopProfile.ordersCount || 0}</p>
+                  <p className="text-xl md:text-2xl font-bold">{shopStats?.totalOrdersCount || 0}</p>
                 </div>
                 <ShoppingBag className="h-6 md:h-8 w-6 md:w-8 text-ghana-green opacity-80" />
               </CardContent>
@@ -173,10 +190,10 @@ const ShopOwnerDashboard = () => {
             <Card>
               <CardContent className="p-4 md:p-6 flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-muted-foreground">Today's Views</p>
-                  <p className="text-xl md:text-2xl font-bold">{shopProfile.viewsToday || 0}</p>
+                  <p className="text-sm text-muted-foreground">Today's Orders</p>
+                  <p className="text-xl md:text-2xl font-bold">{shopStats?.todayOrdersCount || 0}</p>
                 </div>
-                <Eye className="h-6 md:h-8 w-6 md:w-8 text-ghana-green opacity-80" />
+                <Package className="h-6 md:h-8 w-6 md:w-8 text-ghana-green opacity-80" />
               </CardContent>
             </Card>
             
@@ -184,7 +201,7 @@ const ShopOwnerDashboard = () => {
               <CardContent className="p-4 md:p-6 flex justify-between items-center">
                 <div>
                   <p className="text-sm text-muted-foreground">Monthly Revenue</p>
-                  <p className="text-xl md:text-2xl font-bold">GH₵{shopProfile.revenue?.month || 0}</p>
+                  <p className="text-xl md:text-2xl font-bold">GH₵{shopStats?.monthlyRevenue?.toFixed(2) || '0.00'}</p>
                 </div>
                 <TrendingUp className="h-6 md:h-8 w-6 md:w-8 text-ghana-green opacity-80" />
               </CardContent>
