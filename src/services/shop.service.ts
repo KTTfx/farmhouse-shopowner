@@ -20,6 +20,20 @@ const shopsService = {
     });
     return response.data.data;
   },
+
+  getShopStats: async () => {
+    try {
+      const response = await apiClient.get('/shops/stats', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('shopToken')}`,
+        },
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching shop stats:', error);
+      throw error;
+    }
+  }
 };
 
 export default shopsService;
