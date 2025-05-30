@@ -1,12 +1,50 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useShopAuth } from "@/context/ShopAuthContext";
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useShopAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+export const ProtectedRoute = () => {
+  const { isAuthenticated, isLoading } = useShopAuth();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  
+  // Add a delay before redirecting to ensure token validation completes
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (!isLoading && !isAuthenticated) {
+      // Wait a bit before redirecting to handle race conditions
+      timer = setTimeout(() => {
+        setShouldRedirect(true);
+      }, 500);
+    }
+    
+    return () => clearTimeout(timer);
+  }, [isLoading, isAuthenticated]);
+  
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-ghana-green" />
+      </div>
+    );
   }
-
-  return <>{children}</>;
-} 
+  
+  // Check for token in localStorage as a backup validation
+  const hasToken = !!localStorage.getItem('token');
+  
+  if (shouldRedirect && !hasToken) {
+    return <Navigate to="/auth" />;
+  }
+  
+  // If we have a token or are authenticated, render the protected content
+  if (isAuthenticated || hasToken) {
+    return <Outlet />;
+  }
+  
+  // Show loading state while we wait to determine if we should redirect
+  return (
+    <div className="h-screen flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-ghana-green" />
+    </div>
+  );
+};
