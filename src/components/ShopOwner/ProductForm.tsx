@@ -207,18 +207,18 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
   };
 
   // Debug function to add to your component
-const debugFormData = (formData: FormData) => {
-  // console.log("===== FORM DATA DEBUG =====");
-  for (const [key, value] of formData.entries()) {
-    if (key === 'productImages') {
-      const file = value as File;
-      // console.log(`${key}: ${file.name} (${file.type}, ${file.size} bytes)`);
-    } else {
-      // console.log(`${key}: ${value}`);
-    }
-  }
-  // console.log("===========================");
-};
+// const debugFormData = (formData: FormData) => {
+//   // console.log("===== FORM DATA DEBUG =====");
+//   for (const [key, value] of formData.entries()) {
+//     if (key === 'productImages') {
+//       const file = value as File;
+//       // console.log(`${key}: ${file.name} (${file.type}, ${file.size} bytes)`);
+//     } else {
+//       // console.log(`${key}: ${value}`);
+//     }
+//   }
+//   // console.log("===========================");
+// };
 
   // API calls
   const createProduct = async () => {
@@ -273,11 +273,11 @@ const debugFormData = (formData: FormData) => {
     });
     
     // Debug what we're sending
-    debugFormData(productData);
+    // debugFormData(productData);
     
     // Make API request
     // console.log("Sending product creation request...");
-    const result = await productsService.createProduct(productData);
+    await productsService.createProduct(productData);
     // console.log("Product created successfully:", result);
     
     toast({
@@ -332,7 +332,7 @@ const debugFormData = (formData: FormData) => {
       // console.log("Updating product:", productToEdit.id);
       const productData = prepareFormData();
       
-      const result = await productsService.updateProduct(productToEdit.id, productData);
+      await productsService.updateProduct(productToEdit.id, productData);
       // console.log("Product updated successfully:", result);
       
       toast({
