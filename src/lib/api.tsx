@@ -10,13 +10,11 @@ const apiClient = axios.create({
   },
 });
 
-// Add a request interceptor to include token with every request
+// Add a request interceptor to include the token in every request
 apiClient.interceptors.request.use(
   (config) => {
-    console.log("Making request to:", config.url);
     const token = localStorage.getItem('shopToken');
     if (token) {
-      console.log("Including token in request");
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -24,13 +22,21 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Add a response interceptor to handle token expiration without auto-logout
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      console.log("Received 401 unauthorized, clearing token");
-      localStorage.removeItem('shopToken');
+    // If the error is due to an invalid token (401 Unauthorized)
+    if (error.response && error.response.status === 401) {
+      // Don't automatically logout on the auth endpoints
+      const isAuthEndpoint = 
+        error.config.url.includes('/auth/login') || 
+        error.config.url.includes('/auth/register');
+      
+      if (!isAuthEndpoint) {
+        console.log('API Error: Unauthorized. This might be logged during normal auth flow.');
+        // We'll let the context handle the logout, don't remove token here
+      }
     }
     return Promise.reject(error);
   }
