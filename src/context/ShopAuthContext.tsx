@@ -1,6 +1,5 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import apiClient from "@/lib/api";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 interface Shop {
