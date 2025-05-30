@@ -104,6 +104,10 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const canModifyCategory = (category: Category) => {
+    return category.shop && category.shop.id === shopId;
+  };
+
   // Reset form data
   const resetFormData = () => {
     setFormData({ name: "", description: "" });
@@ -111,6 +115,15 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
 
   // Open edit dialog
   const handleEditCategory = (category: Category) => {
+    if (!canModifyCategory(category)) {
+      toast({
+        title: "Permission Denied",
+        description: "You can only edit categories created by your shop.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSelectedCategory(category);
     setFormData({
       name: category.name,
@@ -119,8 +132,17 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
     setIsEditDialogOpen(true);
   };
 
-  // Open delete dialog
+  // Update the handleDeletePrompt function
   const handleDeletePrompt = (category: Category) => {
+    if (!canModifyCategory(category)) {
+      toast({
+        title: "Permission Denied",
+        description: "You can only delete categories created by your shop.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSelectedCategory(category);
     setIsDeleteDialogOpen(true);
   };
@@ -176,9 +198,18 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
       return;
     }
 
+    // Double-check permissions
+    if (!canModifyCategory(selectedCategory)) {
+      toast({
+        title: "Permission Denied",
+        description: "You can only edit categories created by your shop.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // console.log('Request payload:', { id: selectedCategory.id, name: formData.name, description: formData.description });
       const updatedCategory = await categoryService.updateCategory(
         selectedCategory.id, 
         formData.name, 
@@ -196,21 +227,37 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
         title: "Category updated",
         description: "Category has been updated successfully."
       });
-    } catch (err) {
-      // console.error("Failed to update category:", err);
+    } catch (err: any) {
+      // Handle specific error cases
+      let errorMessage = "Failed to update category. Please try again.";
+      
+      if (err.response?.status === 403) {
+        errorMessage = "You don't have permission to update this category.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to update category. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
-  };
+};
 
   // Delete category
   const handleDeleteCategory = async () => {
     if (!selectedCategory) return;
+
+    // Double-check permissions
+    if (!canModifyCategory(selectedCategory)) {
+      toast({
+        title: "Permission Denied",
+        description: "You can only delete categories created by your shop.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -225,11 +272,17 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
         title: "Category deleted",
         description: "Category has been deleted successfully."
       });
-    } catch (err) {
-      // console.error("Failed to delete category:", err);
+    } catch (err: any) {
+      // Handle specific error cases
+      let errorMessage = "Failed to delete category. Please try again.";
+      
+      if (err.response?.status === 403) {
+        errorMessage = "You don't have permission to delete this category.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to delete category. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -349,24 +402,39 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
                     {category.products ? category.products.length : 0}
                   </TableCell>
                   <TableCell>
-                    {category.shop ? category.shop.name : "Unknown shop"}
+                    <div className="flex items-center">
+                      {category.shop?.name || "Unknown shop"}
+                      {canModifyCategory(category) && (
+                        <span className="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
+                          You
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditCategory(category)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeletePrompt(category)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canModifyCategory(category) ? (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditCategory(category)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeletePrompt(category)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="text-xs text-muted-foreground italic px-2">
+                          Not editable
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
