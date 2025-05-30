@@ -30,7 +30,8 @@ import {
   Loader2, 
   AlertCircle,
   RefreshCw,
-  Search
+  Search,
+  CheckCircle
 } from "lucide-react";
 // import productsService from "@/services/product.service";
 import categoryService from "@/services/category.service";
@@ -86,7 +87,7 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
       const response = await categoryService.getCategories()
       setCategories(response);
     } catch (err) {
-      console.error("Failed to fetch categories:", err);
+      // console.error("Failed to fetch categories:", err);
       setError("Failed to load categories. Please try again.");
     } finally {
       setIsLoading(false);
@@ -141,15 +142,19 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
         formData.name,
         formData.description
       );
+      // Explicitly update the categories list with the new item
       setCategories(prev => [...prev, newCategory]);
+      
+      // Reset form and close dialog
       setIsAddDialogOpen(false);
       resetFormData();
+
       toast({
         title: "Category created",
         description: "Category has been created successfully."
       });
     } catch (err) {
-      console.error("Failed to create category:", err);
+      // console.error("Failed to create category:", err);
       toast({
         title: "Error",
         description: "Failed to create category. Please try again.",
@@ -173,7 +178,7 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
 
     setIsSubmitting(true);
     try {
-      console.log('Request payload:', { id: selectedCategory.id, name: formData.name, description: formData.description });
+      // console.log('Request payload:', { id: selectedCategory.id, name: formData.name, description: formData.description });
       const updatedCategory = await categoryService.updateCategory(
         selectedCategory.id, 
         formData.name, 
@@ -192,7 +197,7 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
         description: "Category has been updated successfully."
       });
     } catch (err) {
-      console.error("Failed to update category:", err);
+      // console.error("Failed to update category:", err);
       toast({
         title: "Error",
         description: "Failed to update category. Please try again.",
@@ -221,7 +226,7 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
         description: "Category has been deleted successfully."
       });
     } catch (err) {
-      console.error("Failed to delete category:", err);
+      // console.error("Failed to delete category:", err);
       toast({
         title: "Error",
         description: "Failed to delete category. Please try again.",
@@ -344,7 +349,7 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
                     {category.products ? category.products.length : 0}
                   </TableCell>
                   <TableCell>
-                    {category.shop.name}
+                    {category.shop ? category.shop.name : "Unknown shop"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -372,7 +377,11 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
       )}
 
       {/* Add Category Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        if (!isSubmitting) {
+          setIsAddDialogOpen(open) 
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
@@ -417,10 +426,13 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Adding...
                 </>
               ) : (
-                'Create Category'
+                <>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Category
+                </>
               )}
             </Button>
           </DialogFooter>
@@ -428,7 +440,11 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
       </Dialog>
 
       {/* Edit Category Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        if (!isSubmitting) {
+          setIsEditDialogOpen(open)
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
@@ -476,7 +492,10 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
                   Updating...
                 </>
               ) : (
-                'Save Changes'
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
               )}
             </Button>
           </DialogFooter>
@@ -484,7 +503,11 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
       </Dialog>
 
       {/* Delete Category Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+        if (!isSubmitting) {
+          setIsDeleteDialogOpen(open);
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Category</DialogTitle>
@@ -511,7 +534,10 @@ export const CategoryManager = ({ shopId }: CategoryManagerProps) => {
                   Deleting...
                 </>
               ) : (
-                'Delete Category'
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Category
+                </>
               )}
             </Button>
           </DialogFooter>
