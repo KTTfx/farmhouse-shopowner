@@ -71,7 +71,7 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
     setIsLoadingCategories(true);
     try {
       const response = await categoryService.getCategories();
-      console.log("Categories API response:", response);
+      // console.log("Categories API response:", response);
       
       let categoriesData = [];
       if (Array.isArray(response)) {
@@ -80,10 +80,10 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
         categoriesData = response.categories || response.data || [];
       }
       
-      console.log("Processed categories data:", categoriesData);
+      // console.log("Processed categories data:", categoriesData);
       setCategories(categoriesData);
     } catch (error) {
-      console.error("Failed to fetch categories:", error);
+      // console.error("Failed to fetch categories:", error);
       toast({
         title: "Error",
         description: "Failed to load categories. Please refresh and try again.",
@@ -108,7 +108,7 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    console.log(`Setting ${name} to:`, value);
+    // console.log(`Setting ${name} to:`, value);
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -194,12 +194,12 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
     });
 
     // Debug logging
-    console.log("Form data prepared:");
+    // console.log("Form data prepared:");
     for (const [key, value] of productData.entries()) {
       if (key === 'productImages') {
-        console.log(`${key}: [File]`);
+        // console.log(`${key}: [File]`);
       } else {
-        console.log(`${key}: ${value}`);
+        // console.log(`${key}: ${value}`);
       }
     }
     
@@ -208,16 +208,16 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
 
   // Debug function to add to your component
 const debugFormData = (formData: FormData) => {
-  console.log("===== FORM DATA DEBUG =====");
+  // console.log("===== FORM DATA DEBUG =====");
   for (const [key, value] of formData.entries()) {
     if (key === 'productImages') {
       const file = value as File;
-      console.log(`${key}: ${file.name} (${file.type}, ${file.size} bytes)`);
+      // console.log(`${key}: ${file.name} (${file.type}, ${file.size} bytes)`);
     } else {
-      console.log(`${key}: ${value}`);
+      // console.log(`${key}: ${value}`);
     }
   }
-  console.log("===========================");
+  // console.log("===========================");
 };
 
   // API calls
@@ -276,9 +276,9 @@ const debugFormData = (formData: FormData) => {
     debugFormData(productData);
     
     // Make API request
-    console.log("Sending product creation request...");
+    // console.log("Sending product creation request...");
     const result = await productsService.createProduct(productData);
-    console.log("Product created successfully:", result);
+    // console.log("Product created successfully:", result);
     
     toast({
       title: "Success!",
@@ -287,14 +287,14 @@ const debugFormData = (formData: FormData) => {
     
     onSuccess();
   } catch (error: any) {
-    console.error("Product creation failed:", error);
+    // console.error("Product creation failed:", error);
     
     // Extract specific validation error messages
     let errorMessage = "Failed to add product";
     
     if (error.response?.data) {
       const responseData = error.response.data;
-      console.error("API error response:", responseData);
+      // console.error("API error response:", responseData);
       
       if (responseData.message) {
         errorMessage = responseData.message;
@@ -329,11 +329,11 @@ const debugFormData = (formData: FormData) => {
     setIsSubmitting(true);
     
     try {
-      console.log("Updating product:", productToEdit.id);
+      // console.log("Updating product:", productToEdit.id);
       const productData = prepareFormData();
       
       const result = await productsService.updateProduct(productToEdit.id, productData);
-      console.log("Product updated successfully:", result);
+      // console.log("Product updated successfully:", result);
       
       toast({
         title: "Success!",
@@ -355,20 +355,20 @@ const debugFormData = (formData: FormData) => {
     let errorMessage = defaultMessage;
     
     if (error.response) {
-      console.error("API Error Response:", error.response);
+      // console.error("API Error Response:", error.response);
       
       const { data, status } = error.response;
-      console.error(`Status: ${status}, Data:`, data);
+      // console.error(`Status: ${status}, Data:`, data);
       
       if (typeof data === 'object' && data !== null) {
         errorMessage = data.message || data.error || 
                       (Array.isArray(data.errors) ? data.errors.join(', ') : defaultMessage);
       }
     } else if (error.request) {
-      console.error("No response received:", error.request);
+      // console.error("No response received:", error.request);
       errorMessage = "Network error. Please check your connection.";
     } else {
-      console.error("Error:", error.message);
+      // console.error("Error:", error.message);
       errorMessage = error.message || defaultMessage;
     }
     
