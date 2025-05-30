@@ -24,14 +24,12 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<ShopAuth />} />
+              {/* protected routes */}
+              <Route element={<ProtectedRoute />}>
               <Route
                 path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <ShopOwnerDashboard />
-                  </ProtectedRoute>
-                }
-              />
+                element={<ShopOwnerDashboard />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ShopAuthProvider>
