@@ -349,7 +349,7 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
   };
 
   const handleApiError = (error: any, defaultMessage: string) => {
-    console.error(defaultMessage, error);
+    // console.error(defaultMessage, error);
     
     // Extract detailed error message from API response
     let errorMessage = defaultMessage;
