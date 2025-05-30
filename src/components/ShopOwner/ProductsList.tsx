@@ -102,7 +102,7 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       const products = await productsService.getShopProducts(shopId, showDeleted);
       setProducts(products);
     } catch (err) {
-      console.error("Failed to fetch products:", err);
+      // console.error("Failed to fetch products:", err);
       setError("Failed to load products. Please try again.");
     } finally {
       setIsLoading(false);
@@ -134,10 +134,10 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
     } catch (err: any) {
-      console.error("Failed to delete product:", err);
+      // console.error("Failed to delete product:", err);
       if (err.response) {
-          console.error("Error status:", err.response.status);
-          console.error("Error data:", err.response.data);
+          // console.error("Error status:", err.response.status);
+          // console.error("Error data:", err.response.data);
       }
       
       let errorMessage = "Failed to delete product. Please try again.";
@@ -161,7 +161,7 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       const response = await categoryService.getCategories();
       setCategories(response);
     } catch (err) {
-      console.error("Failed to fetch categories:", err);
+      // console.error("Failed to fetch categories:", err);
       setCategories([]);
     }
   };
@@ -236,10 +236,10 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       
       setIsEditDialogOpen(false);
     } catch (err: any) {
-      console.error("Failed to update product:", err);
+      // console.error("Failed to update product:", err);
       if (err.response) {
-        console.error("Error response:", err.response.data);
-        console.error("Error status:", err.response.status);
+        // console.error("Error response:", err.response.data);
+        // console.error("Error status:", err.response.status);
       }
       
       toast({
@@ -255,9 +255,9 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
   const handleRestoreProduct = async (productId: string) => {
     setIsActionLoading(true);
     try {
-      console.log(`Attempting to restore producy ${productId}`);
+      // console.log(`Attempting to restore producy ${productId}`);
       await productsService.restoreProduct(productId);
-      console.log(`Successfully restored product ${productId}`);
+      // console.log(`Successfully restored product ${productId}`);
       toast({
         title: "Product Restored",
         description: "The product has been successfully restored.",
@@ -266,7 +266,7 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
       // Refresh the products list
       fetchProducts();
     } catch (err: any) {
-      console.error("Failed to restore product:", err);
+      // console.error("Failed to restore product:", err);
       toast({
         title: "Error",
         description: err.response?.data?.message || "Failed to restore product. Please try again.",
