@@ -117,7 +117,7 @@ export const OrdersTable: React.FC = () => {
       setOrders(data);
       setFilteredOrders(data);
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      // console.error("Error fetching orders:", error);
       toast({
         title: "Error",
         description: "Failed to fetch orders. Please try again.",
@@ -187,7 +187,7 @@ export const OrdersTable: React.FC = () => {
       
       fetchOrders(); // Refresh orders after update
     } catch (error) {
-      console.error("Error updating status:", error);
+      // console.error("Error updating status:", error);
       toast({
         title: "Error",
         description: "Failed to update the status. Please try again.",
