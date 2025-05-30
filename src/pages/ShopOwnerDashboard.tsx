@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { 
   AlertCircle,
-  Eye, 
+  // Eye, 
   Package, 
   ShoppingBag, 
   Store, 
