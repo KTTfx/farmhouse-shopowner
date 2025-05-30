@@ -639,14 +639,6 @@ export const ProductsList = ({ shopId }: ProductsListProps) => {
             >
               Close
             </Button>
-            <Button 
-              onClick={() => {
-                setIsViewDialogOpen(false);
-                setIsEditDialogOpen(true);
-              }}
-            >
-              Edit Product
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
