@@ -30,7 +30,7 @@ const shopsService = {
       });
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching shop stats:', error);
+      // console.error('Error fetching shop stats:', error);
       throw error;
     }
   }
