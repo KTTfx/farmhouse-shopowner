@@ -39,7 +39,7 @@ const productsService = {
             });
             return response.data.data;
         } catch (error) {
-            console.error('Error deleting product:', error);
+            // console.error('Error deleting product:', error);
             throw error;
         }
     },
@@ -53,13 +53,13 @@ const productsService = {
             });
             return response.data.data;
         } catch (error) {
-            console.error('Error restoring product:', error);
+            // console.error('Error restoring product:', error);
             throw error;
         }
     },
     
     getShopProducts: async (shopId: string, includeDeleted = false) => {
-        console.log(`Calling API with includeDeleted=${includeDeleted}`); // Debug log
+        // console.log(`Calling API with includeDeleted=${includeDeleted}`); // Debug log
         const response = await apiClient.get(`/shops/${shopId}/products`, {
             params: { includeDeleted: includeDeleted.toString() }, // Convert boolean to string
             headers: {
