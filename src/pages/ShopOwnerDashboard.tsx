@@ -74,7 +74,7 @@ const ShopOwnerDashboard = () => {
         setShopStats(statsData);
 
       } catch (err) {
-        console.error("Error fetching shop data:", err);
+        // console.error("Error fetching shop data:", err);
         setError("Failed to fetch shop profile. Please try refreshing the page.");
       } finally {
         setLoading(false);
