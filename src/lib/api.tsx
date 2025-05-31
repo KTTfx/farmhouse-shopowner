@@ -34,7 +34,7 @@ apiClient.interceptors.response.use(
         error.config.url.includes('/auth/register');
       
       if (!isAuthEndpoint) {
-        console.log('API Error: Unauthorized. This might be logged during normal auth flow.');
+        // console.log('API Error: Unauthorized. This might be logged during normal auth flow.');
         // We'll let the context handle the logout, don't remove token here
       }
     }
