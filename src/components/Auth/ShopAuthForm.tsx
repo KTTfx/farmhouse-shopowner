@@ -35,7 +35,7 @@ export const ShopAuthForm = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
+      await login({ email: data.email, password: data.password });
       toast({
         title: "Success",
         description: "You have successfully logged in.",
