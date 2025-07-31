@@ -357,7 +357,7 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
     if (error.response) {
       // console.error("API Error Response:", error.response);
       
-      const { data, status } = error.response;
+      const { data } = error.response;
       // console.error(`Status: ${status}, Data:`, data);
       
       if (typeof data === 'object' && data !== null) {

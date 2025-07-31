@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useShopAuth } from "@/context/ShopAuthContext";

@@ -37,11 +37,13 @@ export const ShopAuthForm = () => {
     try {
       await login(data.email, data.password);
       toast({
+        title: "Success",
         description: "You have successfully logged in.",
       });
     } catch (error) {
       toast({
-        description: error instanceof Error ? error.message : "Invalid credentials.Try again.",
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred.",
         variant: "destructive",
       });
     } finally {
