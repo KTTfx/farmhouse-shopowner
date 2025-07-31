@@ -11,7 +11,6 @@ interface ShopLayoutProps {
 
 export const ShopLayout = ({ children }: ShopLayoutProps) => {
   const { isAuthenticated, logout } = useShopAuth();
-  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col min-h-screen">

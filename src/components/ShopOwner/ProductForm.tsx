@@ -195,7 +195,7 @@ export const ProductForm = ({ shopId, productToEdit, onSuccess }: ProductFormPro
 
     // Debug logging
     // console.log("Form data prepared:");
-    for (const [key, value] of productData.entries()) {
+    for (const [key] of productData.entries()) {
       if (key === 'productImages') {
         // console.log(`${key}: [File]`);
       } else {
